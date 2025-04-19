@@ -13,6 +13,10 @@ permissions:
       - file
       - directory
 hooks:
+  BeforeInstall:
+    - location: deploy-scripts/before-install-hook.sh
+      timeout: 300
+
   ApplicationStart:
-    - location: deploy-scripts/application-start-hooks.sh
+    - location: deploy-scripts/application-start-hook.sh
       timeout: 300
