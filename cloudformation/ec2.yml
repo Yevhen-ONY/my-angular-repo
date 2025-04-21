@@ -24,11 +24,6 @@ Parameters:
     Description: The AMI ID for the EC2 instance
     Default: ami-0a8ba51ed4d212d8e
   
-  AccessCidrIp:
-    Type: String
-    Description: The CIDR IP range for the security group ingress rules
-    Default: '172.31.0.0/16'
-
 Resources:
   InstanceRole:
     Type: AWS::IAM::Role
@@ -66,11 +61,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIp: !Ref AccessCidrIp 
+          CidrIp: '0.0.0.0/0' 
         - IpProtocol: tcp
           FromPort: 22 
           ToPort: 22 
-          CidrIp: !Ref AccessCidrIp
+          CidrIp: '0.0.0.0/0' 
   
   Instance:
     Type: AWS::EC2::Instance
