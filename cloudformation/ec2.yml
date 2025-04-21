@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: The ID of the VPC where the Instance will be created
+    Default: vpc-06a614dedb67bfc1b
+  
+  Subnet:
+    Type: AWS::EC2::Subnet::Id
+    Description: The subnet where the Instance will be created 
+    Default: subnet-099b52557950762c5
+
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+    Description: The instance type for the EC2 instance
+  
+  AmiId:
+    Type: AWS::EC2::Image::Id 
+    Description: The AMI ID for the EC2 instance
+    Default: ami-0a8ba51ed4d212d8e
+  
+  AccessCidrIp:
+    Type: String
+    Description: The CIDR IP range for the security group ingress rules
+    Default: '172.31.0.0/16'
+
+Resources:
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ReadListS3
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:Get* 
+                  - s3:List* 
+                Resource: '*'
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref InstanceRole 
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Instance security group
+      VpcId: !Ref VpcId 
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref AccessCidrIp 
+        - IpProtocol: tcp
+          FromPort: 22 
+          ToPort: 22 
+          CidrIp: !Ref AccessCidrIp
+  
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref AmiId
+      IamInstanceProfile: !Ref InstanceProfile
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup 
+      SubnetId: !Ref Subnet
+      Tags:
+        - Key: Environment
+          Value: Staging
+
+Outputs:
+  InstanceDnsName:
+    Description: The public DNS name of the EC2 instance
+    Value: !GetAtt Instance.PublicDnsName
